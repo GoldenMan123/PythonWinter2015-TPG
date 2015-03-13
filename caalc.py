@@ -80,6 +80,9 @@ PS1='--> '
 Stop=False
 while not Stop:
     line = raw_input(PS1)
+    if line == 'exit':
+        Stop = True
+        continue
     try:
         res = calc(line)
     except tpg.Error as exc:
