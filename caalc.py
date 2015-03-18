@@ -79,13 +79,42 @@ class Calc(tpg.Parser):
 
 calc = Calc()
 Vars={}
-PS1='--> '
+PS1='-->'
 
 Stop=False
+command_buffer = []
+
 while not Stop:
-    line = raw_input(PS1)
+    if len(command_buffer):
+        line = command_buffer.pop()
+        if len(line):
+            print PS1, line
+        else:
+            continue
+    else:
+        try:
+            line = raw_input(PS1 + " ")
+        except KeyboardInterrupt:
+            print '\nKeyboardInterrupt. Exiting.'
+            line = 'exit'
+        except EOFError:
+            print '\nEOF. Exiting.'
+            line = 'exit'
+        except:
+            traceback.print_exc(1)
+            line = ''
+            print ''
+            pass
     if line == 'exit':
         Stop = True
+        continue
+    if line[:7] == 'source ':
+        try:
+            f = open(line[7:])
+            command_buffer = list(reversed(f.read().split('\n')))
+        except:
+            traceback.print_exc(1) 
+            pass
         continue
     try:
         res = calc(line)
