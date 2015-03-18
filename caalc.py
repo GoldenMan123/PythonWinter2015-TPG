@@ -3,6 +3,7 @@
 
 import readline
 import sys
+import traceback
 import tpg
 import itertools
 
@@ -87,6 +88,9 @@ while not Stop:
         res = calc(line)
     except tpg.Error as exc:
         print >> sys.stderr, exc
+        res = None
+    except:
+        traceback.print_exc(1)
         res = None
     if res != None:
         print res
