@@ -15,6 +15,7 @@ def make_op(s):
         '/': lambda x,y: x/y,
         '&': lambda x,y: x&y,
         '|': lambda x,y: x|y,
+        '^': lambda x,y: x**y
     }[s]
 
 class Vector(list):
@@ -53,17 +54,19 @@ class Calc(tpg.Parser):
     separator spaces: '\s+' ;
     separator comment: '#.*' ;
 
-    token fnumber: '\d+[.]\d*' float ;
+    token fnumber: '\d+[.]1\d*' float ;
     token number: '\d+' int ;
     token op1: '[|&+-]' make_op ;
     token op2: '[*/]' make_op ;
+    token op3: '[\^]' make_op ;
     token id: '\w+' ;
 
     START/e -> Operator $e=None$ | Expr/e | $e=None$ ;
     Operator -> Assign ;
     Assign -> id/i '=' Expr/e $Vars[i]=e$ ;
     Expr/t -> Fact/t ( op1/op Fact/f $t=op(t,f)$ )* ;
-    Fact/f -> Atom/f ( op2/op Atom/a $f=op(f,a)$ )* ;
+    Fact/f -> Pow/f ( op2/op Pow/p $f=op(f,p)$ )* ;
+    Pow/p -> Atom/p ( op3/op Atom/a $p=op(p,a)$ )* ;
     Atom/a ->   Vector/a
               | id/i ( check $i in Vars$ | error $"Undefined variable '{}'".format(i)$ ) $a=Vars[i]$
               | fnumber/a
