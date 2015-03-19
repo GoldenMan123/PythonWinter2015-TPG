@@ -48,6 +48,49 @@ class Vector(list):
         except TypeError:
             return self.__class__(c or a for c in self)
 
+class Matrix(Vector):
+    def __init__(self, *argp, **argn):
+        Vector.__init__(self, *argp, **argn)
+
+    def __str__(self):
+        maxlen = 0
+        for row in self:
+            for column in row:
+                curlen = len(str(column))
+                if curlen > maxlen:
+                    maxlen = curlen
+        result = ''
+        for row in self:
+            result += '['
+            for column in row:
+                result += str(column).rjust(maxlen + 1)
+            result += ' ]\n'
+        return result[:len(result) - 1]
+
+    def __mul__(self, a):
+        try:
+            result = Matrix()
+            for i in range(len(self)):
+                result.append([])
+                for j in range(len(a[0])):
+                    result[i].append(0)
+                    for k in range(len(a)):
+                        result[i][j] += self[i][k] * a[k][j]
+            return result
+        except:
+            pass
+        try:
+            result = Vector()
+            for i in range(len(self)):
+                result.append(0)
+                for j in range(len(a)):
+                    result[i] += self[i][j] * a[j]
+            return result
+        except:
+            pass
+        return Vector.__mul__(self, a)
+            
+
 class Calc(tpg.Parser):
     r"""
 
@@ -67,11 +110,14 @@ class Calc(tpg.Parser):
     Expr/t -> Fact/t ( op1/op Fact/f $t=op(t,f)$ )* ;
     Fact/f -> Pow/f ( op2/op Pow/p $f=op(f,p)$ )* ;
     Pow/p -> Atom/p ( op3/op Atom/a $p=op(p,a)$ )* ;
-    Atom/a ->   Vector/a
+    Atom/a ->   Matrix/a
+              | Vector/a
               | id/i ( check $i in Vars$ | error $"Undefined variable '{}'".format(i)$ ) $a=Vars[i]$
               | fnumber/a
               | number/a
               | '\(' Expr/a '\)' ;
+    Matrix/$Matrix(a)$ -> '\[' Vectors/a '\]' ; 
+    Vectors/v -> Vector/a Vectors/t $v=[a]+t$ | Vector/a $v=[a]$ ;
     Vector/$Vector(a)$ -> '\[' '\]' $a=[]$ | '\[' Atoms/a '\]' ;
     Atoms/v -> Atom/a Atoms/t $v=[a]+t$ | Atom/a $v=[a]$ ;
 
@@ -95,10 +141,10 @@ while not Stop:
         try:
             line = raw_input(PS1 + " ")
         except KeyboardInterrupt:
-            print '\nKeyboardInterrupt. Exiting.'
-            line = 'exit'
+            print '\nKeyboardInterrupt'
+            line = ''
         except EOFError:
-            print '\nEOF. Exiting.'
+            print '\nExiting'
             line = 'exit'
         except:
             traceback.print_exc(1)
